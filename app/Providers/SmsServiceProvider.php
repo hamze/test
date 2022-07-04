@@ -2,10 +2,11 @@
 
 namespace App\Providers;
 
-use App\Services\Kavenegar\Client;
+use App\Services\KavenegarService;
+use App\Services\SmsServiceInterface;
 use Illuminate\Support\ServiceProvider;
 
-class KavenegarServiceProvider extends ServiceProvider
+class SmsServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
@@ -14,12 +15,13 @@ class KavenegarServiceProvider extends ServiceProvider
      */
     public function register()
     {
-	    $this->app->singleton(Client::class, function ($app) {
-		    return new Client(
-			    config('services.ping-ping.uri'),
-                config('services.ping-ping.token')
+	    $this->app->bind(SmsServiceInterface::class, function ($app) {
+		    return new KavenegarService(
+			    config('services.kavenegar.uri'),
+                config('services.kavenegar.token')
             );
         });
+
     }
 
     /**

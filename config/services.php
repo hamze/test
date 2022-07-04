@@ -31,8 +31,13 @@ return [
     ],
 
 	'kavenegar' => [
-		'uri' => env('KAVENEGAR_API_URI', 'https://pingping.io/webapi'),
+		'uri' => env('KAVENEGAR_API_URI'),
 		'token' => env('KAVENEGAR_API_TOKEN'),
+	],
+
+	'ghasedak' => [
+		'uri' => env('GHASEDAK_API_URI'),
+		'token' => env('GHASEDAK_API_TOKEN'),
 	],
 
 ];

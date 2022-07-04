@@ -1,8 +1,10 @@
 <?php
-namespace App\Services\Kavenegar;
+namespace App\Services;
 
 
-class Client
+
+
+class GhasedakService implements SmsServiceInterface
 {
 
 	protected $uri;
@@ -16,4 +18,5 @@ class Client
 	public function send() {
 		return $this->uri;
 	}
+
 }

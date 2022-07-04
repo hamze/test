@@ -10,7 +10,10 @@ class Wage extends Model
     use HasFactory;
 
 	protected $fillable = [
-		'card_id_source',
-		'card_id_destination',
 	];
+
+	public function transaction()
+	{
+		return $this->hasOne(Transaction::class);
+	}
 }

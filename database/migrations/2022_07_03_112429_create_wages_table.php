@@ -15,8 +15,7 @@ class CreateWagesTable extends Migration
     {
         Schema::create('wages', function (Blueprint $table) {
             $table->id();
-	        $table->integer('card_id_source')->index();
-	        $table->integer('card_id_destination')->index();
+	        $table->integer('transaction_id')->index();
 	        $table->bigInteger('cost');
             $table->timestamps();
         });

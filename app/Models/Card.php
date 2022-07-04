@@ -13,4 +13,14 @@ class Card extends Model
 		'account_id',
 		'number',
 	];
+
+	public function account()
+	{
+		return $this->belongsTo(Account::class);
+	}
+
+	public function transactions()
+	{
+		return $this->hasMany(Transaction::class, 'card_id_source', 'id');
+	}
 }
