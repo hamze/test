@@ -22,32 +22,13 @@ class TransactionController extends Controller
 
 	public function getMostTransactions()
 	{
-//		$transactions = Transaction::with(['source.account.user'])->where('created_at', '>', Carbon::now()->subMinute(600)->toDateTimeString() )->get()->toArray();
-
-//		$users = User::has(['accounts' => function ($query){
-//			$query->has(['cards' => function ($query) {
-//				$query->has(['transactions' => function ($query) {
-//					$query->max('id');
-//				}]);
-//			}]);
-//		}])->limit(3)->get();
-
-//		$users = User::whereHas('accounts.cards.transactions', function ($query) {
-//			$query->has('transactions')->withCount('transactions')->orderBy('transactions_count', 'DESC');
-//		})->limit(3)->get();
-
-//		$users = User::with(['accounts.cards' => function($q) {
-//			$q->withCount('transactions')->orderBy('transactions_count', 'DESC');
-//		}])->get();
-
-
 		$data = [];
 
 		$users = DB::table('users')->leftjoin('accounts', 'accounts.user_id', '=', 'users.id')
 			->leftjoin('cards', 'cards.account_id', '=', 'accounts.id')
 			->leftjoin('transactions', 'transactions.card_id_source', '=', 'cards.id')
 			->selectRaw('users.id, COUNT(*) as trs')
-			->where('transactions.created_at', '>', Carbon::now()->subMinute(600)->toDateTimeString() )
+			->where('transactions.created_at', '>', Carbon::now()->subMinute(10)->toDateTimeString() )
 			->groupBy('users.id')
 			->orderBy('trs', 'DESC')
 			->limit(3)
