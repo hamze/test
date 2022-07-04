@@ -13,13 +13,14 @@ use App\Services\SmsServiceInterface;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class TransactionController extends Controller
 {
 
 
-	public function getMostTransactions(SmsServiceInterface $tese)
+	public function getMostTransactions()
 	{
 //		$transactions = Transaction::with(['source.account.user'])->where('created_at', '>', Carbon::now()->subMinute(600)->toDateTimeString() )->get()->toArray();
 
@@ -35,20 +36,48 @@ class TransactionController extends Controller
 //			$query->has('transactions')->withCount('transactions')->orderBy('transactions_count', 'DESC');
 //		})->limit(3)->get();
 
-		$users = User::with(['accounts.cards' => function($q) {
-			$q->withCount('transactions')->orderBy('transactions_count', 'DESC');
-		}])->get();
+//		$users = User::with(['accounts.cards' => function($q) {
+//			$q->withCount('transactions')->orderBy('transactions_count', 'DESC');
+//		}])->get();
 
-		foreach ($users as $user)
-			var_dump( $user->id);die;
 
-//		Transaction::where(['created_at', '>', Carbon::now()->subMinute(10)->toDateTimeString() ])->get()->groupBy('');
-		var_dump( $users ); die;
-		return Transaction::all();
+		$data = [];
+
+		$users = DB::table('users')->leftjoin('accounts', 'accounts.user_id', '=', 'users.id')
+			->leftjoin('cards', 'cards.account_id', '=', 'accounts.id')
+			->leftjoin('transactions', 'transactions.card_id_source', '=', 'cards.id')
+			->selectRaw('users.id, COUNT(*) as trs')
+			->where('transactions.created_at', '>', Carbon::now()->subMinute(600)->toDateTimeString() )
+			->groupBy('users.id')
+			->orderBy('trs', 'DESC')
+			->limit(3)
+			->get();
+
+		foreach ($users as $user) {
+
+			$transactions = DB::table('transactions')
+				->leftjoin('cards', 'cards.id', '=', 'transactions.card_id_source')
+				->leftjoin('accounts', 'accounts.id', '=', 'cards.account_id')
+				->leftjoin('users', 'users.id', '=', 'accounts.user_id')
+				->where('users.id', '=', $user->id)
+				->orderBy('transactions.created_at', 'DESC')
+				->limit(10)
+				->get();
+
+			foreach ($transactions as $transaction)
+				$data[ $transaction->mobile ][] = [
+					'source' => Card::find( $transaction->card_id_source )->number,
+					'destination' => Card::find( $transaction->card_id_destination )->number,
+					'amount' => $transaction->amount,
+				];
+		}
+
+		$response = array('response' => $data, 'success' => true);
+		return response()->json($response, 201);
 	}
 
 
-	public function store(TransactionRequest $request)
+	public function store(TransactionRequest $request, SmsServiceInterface $sms)
 	{
 		$card_source = Card::where( 'number', $request->post('card_source') )->first();
 		$card_destination = Card::where( 'number', $request->post('card_destination') )->first();
@@ -75,6 +104,8 @@ class TransactionController extends Controller
 
 			$card_source->account()->update(['balance' => ($card_source->account->balance - $amount - Transaction::WAGE) ]); // update source account balance
 			$card_destination->account()->update(['balance' => ($card_destination->account->balance + $amount) ]);  // update destination account balance
+
+			$sms->send( $card_source->account->user->mobile, $card_destination->account->user->mobile, $card_source->account->id, $card_destination->account->id, $amount); /// Send Sms to both accounts
 
 			$response = array('response' => 'Transaction Done.', 'success'=>true);
 		}

@@ -18,7 +18,9 @@ class SmsServiceProvider extends ServiceProvider
 	    $this->app->bind(SmsServiceInterface::class, function ($app) {
 		    return new KavenegarService(
 			    config('services.kavenegar.uri'),
-                config('services.kavenegar.token')
+                config('services.kavenegar.token'),
+                config('services.message.source'),
+                config('services.message.destination')
             );
         });
 

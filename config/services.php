@@ -40,4 +40,9 @@ return [
 		'token' => env('GHASEDAK_API_TOKEN'),
 	],
 
+	'message' => [
+		'source' => env('MESSAGE_SOURCE'),
+		'destination' => env('MESSAGE_DESTINATION'),
+	],
+
 ];
